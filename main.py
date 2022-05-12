@@ -113,7 +113,7 @@ def insert_data():
         db.session.add_all(users)
 
 
-@app.route('/users/', methods=['GET'])
+@app.route('/users/', methods=['GET', 'POST'])
 def users_index():
     """ вьюшка для обработки запросов в таблице User"""
     if request.method == 'GET':
@@ -131,11 +131,7 @@ def users_index():
             )
         return jsonify(data)
 
-
-@app.route('/users/<int:uid>/', methods=['POST', 'PUT', 'DELETE'])
-def users_id(uid):
-    """ вьюшка для использования различных методов """
-    if request.method == "POST":
+    elif request.method == "POST":
         data = request.get_json()
         new_user = function_json_user(data)
 
@@ -143,6 +139,25 @@ def users_id(uid):
             db.session.add(new_user)
 
         return '', 201
+
+
+@app.route('/users/<int:uid>/', methods=['GET', 'PUT', 'DELETE'])
+def users_id(uid):
+    """ вьюшка для использования различных методов """
+    if request.method == 'GET':
+        data = []
+        for user in User.query.all(uid):
+            data.append({
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "age": user.age,
+                "email": user.email,
+                "role": user.role,
+                "phone": user.phone
+            }
+            )
+        return jsonify(data)
 
     elif request.method == "PUT":
         data = request.get_json()
@@ -188,16 +203,7 @@ def orders_index():
         return jsonify(data)
     elif request.method == "POST":
         data = request.get_json()
-        new_order = Order(
-            name=data['name'],
-            description=data['description'],
-            start_date=datetime.strptime(data['start_date'], '%m/%d/%Y'),  # перевод времени из JSON in python
-            end_date=datetime.strptime(data['end_date'], '%m/%d/%Y'),  # перевод времени из JSON in python
-            address=data['address'],
-            price=data['price'],
-            customer_id=data['customer_id'],
-            executor_id=data['executor_id']
-        )
+        new_order = function_json_order(data)
         with db.session.begin():
             db.session.add(new_order)
 
@@ -247,7 +253,7 @@ def orders_id(gid):
         return '', 202
 
 
-@app.route('/offers/', methods=['GET'])
+@app.route('/offers/', methods=['GET', 'POST'])
 def offer_index():
     """ вьюшка для обработки запросов в таблице Offer"""
     if request.method == 'GET':
@@ -261,18 +267,29 @@ def offer_index():
             )
         return jsonify(data)
 
-
-@app.route('/offers/<int:oid>/', methods=['POST', 'PUT', 'DELETE'])
-def offer_id(oid):
-    """ вьюшка для использования различных методов """
-    if request.method == "POST":
+    elif request.method == "POST":
         data = request.get_json()
-        new_offer = function_json_user(data)
+        new_order = function_json_offer(data)
 
         with db.session.begin():
-            db.session.add(new_offer)
+            db.session.add(new_order)
 
         return '', 201
+
+
+@app.route('/offers/<int:oid>/', methods=['GET', 'PUT', 'DELETE'])
+def offer_id(oid):
+    """ вьюшка для использования различных методов """
+    if request.method == 'GET':
+        data = []
+        for offer in Offer.query.all(oid):
+            data.append({
+                "id": offer.id,
+                "order_id": offer.order_id,
+                "executor_id": offer.executor_id
+            }
+            )
+        return jsonify(data)
 
     elif request.method == "PUT":
         data = request.get_json()
