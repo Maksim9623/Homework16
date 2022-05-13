@@ -145,18 +145,16 @@ def users_index():
 def users_id(uid):
     """ вьюшка для использования различных методов """
     if request.method == 'GET':
-        data = []
-        for user in User.query.all(uid):
-            data.append({
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "age": user.age,
-                "email": user.email,
-                "role": user.role,
-                "phone": user.phone
-            }
-            )
+        user = User.query.get(uid)
+        data = {
+            "id": user.id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "age": user.age,
+            "email": user.email,
+            "role": user.role,
+            "phone": user.phone
+        }
         return jsonify(data)
 
     elif request.method == "PUT":
@@ -281,14 +279,12 @@ def offer_index():
 def offer_id(oid):
     """ вьюшка для использования различных методов """
     if request.method == 'GET':
-        data = []
-        for offer in Offer.query.all(oid):
-            data.append({
-                "id": offer.id,
-                "order_id": offer.order_id,
-                "executor_id": offer.executor_id
-            }
-            )
+        offer = Offer.query.get(oid)
+        data = {
+            "id": offer.id,
+            "order_id": offer.order_id,
+            "executor_id": offer.executor_id
+        }
         return jsonify(data)
 
     elif request.method == "PUT":
@@ -304,6 +300,7 @@ def offer_id(oid):
 
     elif request.method == 'DELETE':
         offer = Offer.query.get(oid)
+
         with db.session.begin():
             db.session.delete(offer)
 
