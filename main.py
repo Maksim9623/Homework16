@@ -1,7 +1,8 @@
 import json
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 from data import USERS, ORDER, OFFERS
 from datetime import datetime
@@ -11,6 +12,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSON_AS_ASCII'] = False
 db = SQLAlchemy(app)
+engine = create_engine('sqlite:///:memory:')
+Session = sessionmaker(engine)
 
 
 class User(db.Model):
@@ -135,8 +138,9 @@ def users_index():
         data = request.get_json()
         new_user = function_json_user(data)
 
-        with db.session.begin():
-            db.session.add(new_user)
+        db.session.add(new_user)
+        db.session.commit()
+        db.session.close()
 
         return '', 201
 
@@ -167,8 +171,9 @@ def users_id(uid):
         user.role = data['role'],
         user.phone = data['phone']
 
-        with db.session.begin():
-            db.session.add(user)
+        with Session() as session:
+            with db.session.begin():
+                session.add(user)
 
         return '', 203
 
@@ -202,8 +207,10 @@ def orders_index():
     elif request.method == "POST":
         data = request.get_json()
         new_order = function_json_order(data)
-        with db.session.begin():
-            db.session.add(new_order)
+
+        db.session.add(new_order)
+        db.session.commit()
+        db.session.close()
 
         return '', 201
 
@@ -238,8 +245,9 @@ def orders_id(gid):
         order.customer_id = data['customer_id']
         order.executor_id = data['executor_id']
 
-        with db.session.begin():
-            db.session.add(order)
+        db.session.add(order)
+        db.session.commit()
+        db.session.close()
 
         return '', 203
 
@@ -269,8 +277,9 @@ def offer_index():
         data = request.get_json()
         new_order = function_json_offer(data)
 
-        with db.session.begin():
-            db.session.add(new_order)
+        db.session.add(new_order)
+        db.session.commit()
+        db.session.close()
 
         return '', 201
 
@@ -293,8 +302,9 @@ def offer_id(oid):
         offer.order_id = data['order_id']
         offer.executor_id = data['executor_id']
 
-        with db.session.begin():
-            db.session.add(offer)
+        db.session.add(offer)
+        db.session.commit()
+        db.session.close()
 
         return '', 203
 
